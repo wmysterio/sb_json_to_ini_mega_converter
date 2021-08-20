@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -25,17 +25,17 @@ namespace GTA_JSON_TO_INI {
             Console.ReadKey();
         }
 
-        static string normalizeArgName( string inputName ) {
-            return Regex.Replace( inputName, "([A-Z])", "_$1", RegexOptions.Compiled ).ToLower().Trim( '_', ' ' );
-        }
+        static string normalizeArgName( string inputName ) => Regex.Replace( inputName, "([A-Z])", "_$1", RegexOptions.Compiled ).ToLower().Trim( '_', ' ' );
 
         static bool generate( string pathToJson, string pathToIni ) {
+
             var nowTime = DateTime.Now;
+
             Console.WriteLine( $"Читаю файл '{pathToJson}'..." );
             var values = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>( File.ReadAllText( pathToJson ) );
 
-            StringBuilder sb = new StringBuilder(), args = new StringBuilder();
             Console.WriteLine( $"Пытаюсь собрать '{pathToIni}'..." );
+            StringBuilder sb = new StringBuilder(), args = new StringBuilder();
 
             sb.AppendLine( $@"; GTA Modding Community Opcode Database
 ;
@@ -64,10 +64,13 @@ DATE={nowTime.Year}-{nowTime.Month}-{nowTime.Day}
 
                 foreach( JObject currentCommand in currentExtension[ "commands" ] ) {
 
-                    string opcode = currentCommand[ "id" ].ToString();
-                    int numParams = int.Parse( currentCommand[ "num_params" ].ToString() );
-                    string name = currentCommand[ "name" ].ToString().ToLower();
+                    args.Clear();
 
+                    var opcode = currentCommand[ "id" ].ToString();
+                    var numParams = int.Parse( currentCommand[ "num_params" ].ToString() );
+                    var name = currentCommand[ "name" ].ToString().ToLower();
+                    string offset = "", comments = "", hide_unsupported = "";
+                    var arrgIndexCounter = 1;
                     bool is_condition = false,
                          is_unsupported = false,
                          is_nop = false,
@@ -97,7 +100,6 @@ DATE={nowTime.Year}-{nowTime.Month}-{nowTime.Day}
                         hasAttrs = true;
                     }
 
-                    string offset = "", comments = "", hide_unsupported = "";
                     if( hasAttrs ) {
                         if( is_unsupported ) {
                             hide_unsupported = "; ";
@@ -110,20 +112,17 @@ DATE={nowTime.Year}-{nowTime.Month}-{nowTime.Day}
                         if( is_nop )
                             comments += " ; NOP";
                     }
-                    args.Clear();
-                    var arrgIndexCounter = 1;
-                    //if( opcode == "05B6" ) {
-                    //    string s = "";
-                    //    s += 1;
-                    //}
+
                     if( currentCommand.ContainsKey( "input" ) ) {
-                        var inputArrg = currentCommand[ "input" ] as JArray;
-                        foreach( JObject arg in inputArrg ) {
+                        foreach( JObject arg in currentCommand[ "input" ] ) {
+
                             var arg_name = arg[ "name" ].ToString();
                             var arg_type = arg[ "type" ].ToString();
                             var insertedNumber = "d";
+
                             if( arg_name == "self" )
-                                arg_name = $"{arg_type}_self";
+                                arg_name = $"self_{arg_type}";
+
                             switch( arg_type ) {
                                 case "label":
                                 insertedNumber = "p";
@@ -153,25 +152,26 @@ DATE={nowTime.Year}-{nowTime.Month}-{nowTime.Day}
                                 //insertedNumber = "m";
                                 //break;
                             }
+
                             args.Append( $" {normalizeArgName( arg_name )} %{arrgIndexCounter}{insertedNumber}%" );
                             arrgIndexCounter += 1;
                         }
                     }
+
                     if( currentCommand.ContainsKey( "output" ) ) {
-                        var outputArrg = currentCommand[ "output" ] as JArray;
                         args.Append( " output" );
-                        foreach( JObject arg in outputArrg ) {
+                        foreach( JObject arg in currentCommand[ "output" ] ) {
                             args.Append( $" {normalizeArgName( arg[ "name" ].ToString() )} %{arrgIndexCounter}d%" );
                             arrgIndexCounter += 1;
                         }
                     }
+
                     sb.AppendLine( $"{hide_unsupported}{opcode}={numParams},{offset}{name}{Regex.Replace( args.ToString(), " {1,}", " " )}{comments}" );
                 }
 
             }
+
             File.WriteAllText( pathToIni, sb.ToString() );
-            //string s = "";
-            //s += 1;
             Console.WriteLine( $"Создано '{pathToIni}'!" );
             return true;
         }
