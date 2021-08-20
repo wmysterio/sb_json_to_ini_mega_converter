@@ -121,7 +121,7 @@ DATE={nowTime.Year}-{nowTime.Month}-{nowTime.Day}
                             var insertedNumber = "d";
 
                             if( arg_name == "self" )
-                                arg_name = $"self_{arg_type}";
+                                arg_name = $"{arg_type}Self";
 
                             switch( arg_type ) {
                                 case "label":
