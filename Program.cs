@@ -155,6 +155,12 @@ DATE={nowTime.Year}-{nowTime.Month}-{nowTime.Day}
                                 //case "":
                                 //insertedNumber = "m";
                                 //break;
+                                //case "":
+                                //insertedNumber = "s";
+                                //break;
+                                //case "":
+                                //insertedNumber = "h";
+                                //break;
                             }
 
                             args.Append( $" {normalizeArgName( arg_name )} %{arrgIndexCounter}{insertedNumber}%" );
