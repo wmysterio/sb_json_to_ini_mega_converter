@@ -23,6 +23,7 @@ namespace GTA_JSON_TO_INI {
             if( !generate( "sa.json", "SASCM.INI" ) )
                 Console.WriteLine( "Произошла херня :(" );
 
+            Console.ReadKey();
         }
 
         static string normalizeArgName( string inputName ) {
@@ -68,11 +69,18 @@ DATE={nowTime.Year}-{nowTime.Month}-{nowTime.Day}
                     int numParams = int.Parse( currentCommand[ "num_params" ].ToString() );
                     string name = currentCommand[ "name" ].ToString().ToLower();
 
-                    bool hasAttrs = false,
-                        is_condition = false,
-                        is_unsupported = false,
-                        is_nop = false,
-                        is_variadic = false;
+                    bool is_condition = false,
+                         is_unsupported = false,
+                         is_nop = false,
+                         is_variadic = false,
+                         //is_branch = false,
+                         //is_keyword = false,
+                         //is_segment = false,
+                         //is_constructor = false,
+                         //is_overload = false,
+                         //is_static = false,
+                         //is_destructor = false,
+                         hasAttrs = false;
 
                     if( currentCommand.ContainsKey( "attrs" ) ) {
                         var attrObj = currentCommand[ "attrs" ] as JObject;
@@ -115,9 +123,8 @@ DATE={nowTime.Year}-{nowTime.Month}-{nowTime.Day}
                             var arg_name = arg[ "name" ].ToString();
                             var arg_type = arg[ "type" ].ToString();
                             var insertedNumber = "d";
-                            if( arg_name == "self" ) {
-                                arg_name = arg_type;
-                            }
+                            if( arg_name == "self" )
+                                arg_name = $"{arg_type}_self";
                             switch( arg_type ) {
                                 case "label":
                                 insertedNumber = "p";
@@ -155,19 +162,18 @@ DATE={nowTime.Year}-{nowTime.Month}-{nowTime.Day}
                         var outputArrg = currentCommand[ "output" ] as JArray;
                         args.Append( " output" );
                         foreach( JObject arg in outputArrg ) {
-                            var arg_name = arg[ "name" ].ToString();
-                            var arg_type = arg[ "type" ].ToString();
-                            args.Append( $" {normalizeArgName( arg_name )} %{arrgIndexCounter}d%" );
+                            args.Append( $" {normalizeArgName( arg[ "name" ].ToString() )} %{arrgIndexCounter}d%" );
                             arrgIndexCounter += 1;
                         }
                     }
-                    sb.AppendLine( $"{hide_unsupported}{opcode}={numParams},{offset}{name}{args.ToString()}{comments}" );
+                    sb.AppendLine( $"{hide_unsupported}{opcode}={numParams},{offset}{name}{Regex.Replace( args.ToString(), " {1,}", " " )}{comments}" );
                 }
 
             }
-            File.WriteAllText( pathToIni, Regex.Replace( sb.ToString(), " {1,}", " " ) ); // NEED FIX 'XXXX=Y,  ' <- 2 space!!!
+            File.WriteAllText( pathToIni, sb.ToString() );
             //string s = "";
             //s += 1;
+            Console.WriteLine( $"Создано '{pathToIni}'!" );
             return true;
         }
 
