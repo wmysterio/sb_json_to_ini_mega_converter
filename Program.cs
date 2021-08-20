@@ -118,6 +118,10 @@ DATE={nowTime.Year}-{nowTime.Month}-{nowTime.Day}
 
                             var arg_name = arg[ "name" ].ToString();
                             var arg_type = arg[ "type" ].ToString();
+
+                            if( arg_type == "arguments" )
+                                break;
+
                             var insertedNumber = "d";
 
                             if( arg_name == "self" )
