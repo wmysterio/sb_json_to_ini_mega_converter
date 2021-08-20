@@ -102,7 +102,7 @@ DATE={nowTime.Year}-{nowTime.Month}-{nowTime.Day}
 
                     if( hasAttrs ) {
                         if( is_unsupported ) {
-                            hide_unsupported = "; ";
+                            hide_unsupported = ";";
                             comments += " ; UNSUPPORTED";
                         }
                         if( is_condition )
